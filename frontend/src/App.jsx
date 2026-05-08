@@ -1,418 +1,303 @@
 import { useState } from "react";
 import API from "./services/api";
+import "./App.css";
 
 function App() {
-
   const [resume, setResume] = useState(null);
   const [role, setRole] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-
   const [activeTab, setActiveTab] = useState("jobseekers");
-
   const [completedTasks, setCompletedTasks] = useState({});
+  const [fileName, setFileName] = useState("");
 
   const toggleTask = (taskId) => {
+    setCompletedTasks((prev) => ({ ...prev, [taskId]: !prev[taskId] }));
+  };
 
-    setCompletedTasks((prev) => ({
-
-      ...prev,
-
-      [taskId]: !prev[taskId]
-
-    }));
-
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setResume(file);
+    setFileName(file ? file.name : "");
   };
 
   const handleSubmit = async () => {
-
     if (!resume || !role) {
-
       alert("Upload resume and enter role");
-
       return;
     }
-
     const formData = new FormData();
-
     formData.append("resume", resume);
     formData.append("role", role);
-
     try {
-
       setLoading(true);
-
-      const response = await API.post(
-        "/analyze",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data"
-          }
-        }
-      );
-
+      const response = await API.post("/analyze", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       setData(response.data);
-
     } catch (err) {
-
       console.error(err);
-
       alert("Backend connection failed");
-
     } finally {
-
       setLoading(false);
-
     }
   };
+
+  const tabs = [
+    { id: "jobseekers", label: "Job Seekers" },
+    { id: "enterprise", label: "Enterprise" },
+    { id: "recruiters", label: "Recruiters" },
+  ];
 
   const tabContent = {
-
     jobseekers: {
+      eyebrow: "Career Intelligence",
       title: "Build Your Career Strategy",
       subtitle:
-        "Upload your resume to receive ATS scoring, skill gap analysis, personalized learning resources, and a detailed roadmap tailored to your dream role."
+        "Upload your resume to receive ATS scoring, skill gap analysis, personalised learning resources, and a detailed roadmap tailored to your target role.",
+      stat1: { value: "94%", label: "ATS Match Accuracy" },
+      stat2: { value: "3×", label: "Interview Rate Lift" },
     },
-
     enterprise: {
+      eyebrow: "Workforce Development",
       title: "Upskill Your Workforce",
       subtitle:
-        "Analyze workforce skill gaps, identify learning pathways, and build strategic development programs across teams and departments."
+        "Analyse workforce skill gaps, identify learning pathways, and build strategic development programmes across teams and departments.",
+      stat1: { value: "60%", label: "Faster Onboarding" },
+      stat2: { value: "40%", label: "Retention Improvement" },
     },
-
     recruiters: {
+      eyebrow: "Talent Acquisition",
       title: "Find Better Candidates Faster",
       subtitle:
-        "Evaluate candidate profiles, identify strengths and weaknesses, and streamline hiring decisions using AI-powered insights."
-    }
-
+        "Evaluate candidate profiles, identify strengths and weaknesses, and streamline hiring decisions using AI-powered insights.",
+      stat1: { value: "5×", label: "Screening Speed" },
+      stat2: { value: "82%", label: "Placement Success" },
+    },
   };
 
+  const content = tabContent[activeTab];
+  const completedCount = Object.values(completedTasks).filter(Boolean).length;
+
   return (
-
-    <div className="min-h-screen bg-[#081120] text-white">
-
-      {/* NAVBAR */}
-
-      <div className="border-b border-slate-800 bg-[#091424]">
-
-        <div className="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
-
-          <div>
-
-            <h1 className="text-3xl font-bold text-cyan-400">
-              ACIP
-            </h1>
-
-            <p className="text-slate-400 text-sm">
-              AI Career Intelligence Platform
-            </p>
-
+    <div className="acip-root">
+      {/* TOP BAR */}
+      <header className="acip-topbar">
+        <div className="acip-container acip-topbar-inner">
+          <div className="acip-brand">
+            <span className="acip-brand-mark">ACIP</span>
+            <span className="acip-brand-divider" />
+            <span className="acip-brand-sub">AI Career Intelligence Platform</span>
           </div>
-
-          <div className="flex items-center gap-5">
-
-            <button className="text-slate-300 hover:text-white transition">
-              Features
-            </button>
-
-            <button className="text-slate-300 hover:text-white transition">
-              Pricing
-            </button>
-
-            <button className="bg-cyan-500 hover:bg-cyan-400 text-black px-5 py-3 rounded-2xl font-semibold transition">
-              Get Started
-            </button>
-
-          </div>
-
+          <nav className="acip-nav">
+            <a href="#" className="acip-nav-link">Features</a>
+            <a href="#" className="acip-nav-link">Pricing</a>
+            <a href="#" className="acip-nav-link">Docs</a>
+            <button className="acip-btn-primary">Request Demo</button>
+          </nav>
         </div>
+      </header>
 
+      {/* TAB STRIP */}
+      <div className="acip-tabstrip">
+        <div className="acip-container acip-tabstrip-inner">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`acip-tab ${activeTab === tab.id ? "acip-tab--active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* HERO */}
+      <main className="acip-container acip-main">
 
-      <div className="max-w-7xl mx-auto p-8">
-
-        <div className="bg-[#0d1b2e] border border-slate-800 rounded-3xl p-16">
-
-          <h1 className="text-6xl font-bold mb-6">
-
-            {tabContent[activeTab].title}
-
-          </h1>
-
-          <p className="text-slate-400 text-xl max-w-4xl">
-
-            {tabContent[activeTab].subtitle}
-
-          </p>
-
-        </div>
-
-      </div>
-
-      {/* ANALYZER */}
-
-      <div className="max-w-7xl mx-auto px-8 pb-16">
-
-        <div className="bg-[#0d1b2e] border border-slate-800 rounded-3xl p-8">
-
-          <div className="grid md:grid-cols-2 gap-6">
-
-            <input
-              type="file"
-              onChange={(e) => setResume(e.target.files[0])}
-              className="bg-[#132238] border border-slate-700 rounded-2xl p-4"
-            />
-
-            <input
-              type="text"
-              placeholder="Target Role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="bg-[#132238] border border-slate-700 rounded-2xl p-4"
-            />
-
+        {/* HERO SECTION */}
+        <section className="acip-hero">
+          <div className="acip-hero-content">
+            <p className="acip-eyebrow">{content.eyebrow}</p>
+            <h1 className="acip-hero-title">{content.title}</h1>
+            <p className="acip-hero-sub">{content.subtitle}</p>
           </div>
+          <div className="acip-hero-stats">
+            <div className="acip-stat">
+              <span className="acip-stat-value">{content.stat1.value}</span>
+              <span className="acip-stat-label">{content.stat1.label}</span>
+            </div>
+            <div className="acip-stat-divider" />
+            <div className="acip-stat">
+              <span className="acip-stat-value">{content.stat2.value}</span>
+              <span className="acip-stat-label">{content.stat2.label}</span>
+            </div>
+          </div>
+        </section>
 
-          <button
-            onClick={handleSubmit}
-            className="mt-6 bg-gradient-to-r from-cyan-400 to-blue-500 text-black px-8 py-4 rounded-2xl font-bold"
-          >
-            {loading ? "Analyzing..." : "Analyze Resume"}
-          </button>
+        {/* ANALYZER PANEL */}
+        <section className="acip-panel acip-analyzer">
+          <div className="acip-panel-header">
+            <h2 className="acip-panel-title">Resume Analysis</h2>
+            <p className="acip-panel-sub">Upload a PDF or DOCX and specify your target role to begin.</p>
+          </div>
+          <div className="acip-analyzer-fields">
+            <label className="acip-file-label">
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={handleFileChange}
+                className="acip-file-input"
+              />
+              <div className="acip-file-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="12" y1="18" x2="12" y2="12"/>
+                  <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+                <span>{fileName || "Upload Resume (PDF / DOCX)"}</span>
+              </div>
+            </label>
+            <div className="acip-input-group">
+              <input
+                type="text"
+                placeholder="Target Role — e.g. Senior Product Manager"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="acip-text-input"
+              />
+            </div>
+          </div>
+          <div className="acip-analyzer-footer">
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className={`acip-btn-analyze ${loading ? "acip-btn-analyze--loading" : ""}`}
+            >
+              {loading ? (
+                <>
+                  <span className="acip-spinner" />
+                  Analysing…
+                </>
+              ) : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                  Analyse Resume
+                </>
+              )}
+            </button>
+            <p className="acip-analyzer-note">Your data is processed securely and never stored.</p>
+          </div>
+        </section>
 
-        </div>
-
-      </div>
-
-      {/* ROADMAP */}
-
-      {data && (
-
-        <div className="max-w-7xl mx-auto px-8 pb-20">
-
-          <div className="bg-[#0d1b2e] border border-slate-800 rounded-3xl p-8">
-
-            <div className="flex justify-between items-center mb-10">
-
+        {/* ROADMAP */}
+        {data && (
+          <section className="acip-panel acip-roadmap">
+            <div className="acip-roadmap-header">
               <div>
-
-                <h2 className="text-4xl font-bold">
-                  Dynamic Career Roadmap
-                </h2>
-
-                <p className="text-slate-400 mt-2">
-                  Track your progress and complete milestones
-                </p>
-
+                <h2 className="acip-panel-title">Career Roadmap</h2>
+                <p className="acip-panel-sub">Track milestones and mark skills as completed.</p>
               </div>
-
-              <div className="bg-cyan-500/20 text-cyan-400 px-5 py-3 rounded-2xl">
-
-                {
-                  Object.values(completedTasks).filter(Boolean).length
-                }
-
-                {" "}Completed
-
+              <div className="acip-progress-badge">
+                <span className="acip-progress-count">{completedCount}</span>
+                <span className="acip-progress-label">milestones complete</span>
               </div>
-
             </div>
 
-            <div className="space-y-8">
-
+            <div className="acip-phases">
               {data.roadmap?.map((phase, phaseIndex) => (
-
-                <div
-                  key={phaseIndex}
-                  className="bg-[#132238] border border-slate-700 rounded-3xl p-8"
-                >
-
-                  <div className="flex justify-between items-center mb-8">
-
-                    <div>
-
-                      <p className="text-cyan-400 mb-2">
-                        Phase {phaseIndex + 1}
-                      </p>
-
-                      <h3 className="text-3xl font-bold">
-                        {phase.title}
-                      </h3>
-
-                    </div>
-
+                <div key={phaseIndex} className="acip-phase">
+                  <div className="acip-phase-header">
+                    <span className="acip-phase-num">Phase {phaseIndex + 1}</span>
+                    <h3 className="acip-phase-title">{phase.title}</h3>
                   </div>
 
-                  <div className="space-y-6">
-
+                  <div className="acip-items">
                     {phase.items?.map((item, itemIndex) => {
-
                       const taskId = `${phaseIndex}-${itemIndex}`;
-
                       const completed = completedTasks[taskId];
-
                       return (
-
-                        <div
-                          key={itemIndex}
-                          className={`rounded-3xl border p-6 transition ${
-                            completed
-                              ? "bg-green-500/10 border-green-500/30"
-                              : "bg-[#0d1b2e] border-slate-700"
-                          }`}
-                        >
-
-                          <div className="flex justify-between items-start mb-6">
-
-                            <div className="flex gap-4">
-
+                        <div key={itemIndex} className={`acip-item ${completed ? "acip-item--done" : ""}`}>
+                          <div className="acip-item-top">
+                            <div className="acip-item-left">
                               <button
                                 onClick={() => toggleTask(taskId)}
-                                className={`w-8 h-8 rounded-xl border-2 transition ${
-                                  completed
-                                    ? "bg-green-500 border-green-500"
-                                    : "border-slate-500"
-                                }`}
+                                className={`acip-check ${completed ? "acip-check--done" : ""}`}
+                                aria-label="Toggle completion"
                               >
-                                {completed && "✓"}
+                                {completed && (
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                  </svg>
+                                )}
                               </button>
-
                               <div>
-
-                                <h4 className="text-2xl font-bold mb-2">
-                                  {item.skill}
-                                </h4>
-
-                                <p className="text-slate-400">
-                                  Timeline: {item.time}
-                                </p>
-
+                                <h4 className="acip-item-skill">{item.skill}</h4>
+                                <p className="acip-item-time">Timeline: {item.time}</p>
                               </div>
-
                             </div>
-
-                            <div className={`px-4 py-2 rounded-xl ${
-                              completed
-                                ? "bg-green-500/20 text-green-400"
-                                : "bg-cyan-500/20 text-cyan-400"
-                            }`}>
-
+                            <span className={`acip-status-badge ${completed ? "acip-status-badge--done" : ""}`}>
                               {completed ? "Completed" : "In Progress"}
-
-                            </div>
-
+                            </span>
                           </div>
 
-                          {/* PROGRESS */}
-
-                          <div className="mb-8">
-
-                            <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
-
-                              <div
-                                className={`h-full transition-all duration-500 ${
-                                  completed
-                                    ? "w-full bg-green-500"
-                                    : "w-1/3 bg-cyan-400"
-                                }`}
-                              ></div>
-
-                            </div>
-
+                          <div className="acip-progress-bar">
+                            <div className={`acip-progress-fill ${completed ? "acip-progress-fill--done" : ""}`} />
                           </div>
 
-                          {/* DETAILS */}
-
-                          <div className="grid md:grid-cols-2 gap-6">
-
-                            <div>
-
-                              <p className="text-cyan-400 font-semibold mb-2">
-                                Suggested Project
-                              </p>
-
-                              <p className="text-slate-300">
-                                {item.project}
-                              </p>
-
+                          <div className="acip-item-meta">
+                            <div className="acip-meta-block">
+                              <p className="acip-meta-label">Suggested Project</p>
+                              <p className="acip-meta-value">{item.project}</p>
                             </div>
-
-                            <div>
-
-                              <p className="text-cyan-400 font-semibold mb-2">
-                                Difficulty
-                              </p>
-
-                              <p className="text-slate-300">
-                                {item.difficulty}
-                              </p>
-
+                            <div className="acip-meta-block">
+                              <p className="acip-meta-label">Difficulty</p>
+                              <p className="acip-meta-value">{item.difficulty}</p>
                             </div>
-
                           </div>
 
-                          {/* RESOURCES */}
-
-                          <div className="mt-8">
-
-                            <p className="text-cyan-400 font-semibold mb-4">
-                              Learning Resources
-                            </p>
-
-                            <div className="grid md:grid-cols-2 gap-4">
-
-                              {item.resources?.map((resource, resourceIndex) => (
-
-                                <a
-                                  key={resourceIndex}
-                                  href={resource[1]}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="bg-[#132238] border border-slate-700 hover:border-cyan-400 rounded-2xl p-5 transition"
-                                >
-
-                                  <p className="font-semibold mb-2">
-                                    {resource[0]}
-                                  </p>
-
-                                  <p className="text-sm text-slate-400">
-                                    Open Resource
-                                  </p>
-
-                                </a>
-
-                              ))}
-
+                          {item.resources?.length > 0 && (
+                            <div className="acip-resources">
+                              <p className="acip-meta-label">Learning Resources</p>
+                              <div className="acip-resource-grid">
+                                {item.resources.map((resource, ri) => (
+                                  <a
+                                    key={ri}
+                                    href={resource[1]}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="acip-resource-card"
+                                  >
+                                    <span className="acip-resource-name">{resource[0]}</span>
+                                    <span className="acip-resource-cta">
+                                      Open →
+                                    </span>
+                                  </a>
+                                ))}
+                              </div>
                             </div>
-
-                          </div>
-
+                          )}
                         </div>
-
                       );
-
                     })}
-
                   </div>
-
                 </div>
-
               ))}
-
             </div>
+          </section>
+        )}
+      </main>
 
-          </div>
-
+      <footer className="acip-footer">
+        <div className="acip-container acip-footer-inner">
+          <span className="acip-brand-mark acip-brand-mark--sm">ACIP</span>
+          <span className="acip-footer-copy">© 2025 AI Career Intelligence Platform. All rights reserved.</span>
         </div>
-
-      )}
-
+      </footer>
     </div>
-
   );
 }
 
