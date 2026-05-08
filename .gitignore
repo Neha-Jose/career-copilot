@@ -1,0 +1,38 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+
+# Large ML/Data files
+*.h5
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.csv
+*.zip
+*.tar
+*.gz
+*.sqlite3
+
+# Cache
+.cache/
