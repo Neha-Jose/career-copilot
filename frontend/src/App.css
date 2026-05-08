@@ -195,6 +195,15 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.5;
 }
 
+.acip-error-panel {
+  border-color: #E1B7B3;
+  background: #FFF3F2;
+}
+
+.acip-error-panel .acip-panel-title {
+  color: #9D3217;
+}
+
 /* ── Hero ── */
 .acip-hero {
   background: var(--surface);

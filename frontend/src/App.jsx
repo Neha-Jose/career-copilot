@@ -6,6 +6,7 @@ function App() {
   const [resume, setResume] = useState(null);
   const [role, setRole] = useState("");
   const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("jobseekers");
   const [completedTasks, setCompletedTasks] = useState({});
@@ -26,6 +27,11 @@ function App() {
       alert("Upload resume and enter role");
       return;
     }
+
+    setError(null);
+    setData(null);
+    setCompletedTasks({});
+
     const formData = new FormData();
     formData.append("resume", resume);
     formData.append("role", role);
@@ -34,10 +40,21 @@ function App() {
       const response = await API.post("/analyze", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setData(response.data);
+
+      if (response.data?.error) {
+        setError(response.data.error);
+        setData(null);
+      } else {
+        setData(response.data);
+      }
     } catch (err) {
       console.error(err);
-      alert("Backend connection failed");
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Backend connection failed"
+      );
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -193,8 +210,17 @@ function App() {
           </div>
         </section>
 
+        {error && (
+          <section className="acip-panel acip-error-panel">
+            <div className="acip-panel-header">
+              <h2 className="acip-panel-title">Error</h2>
+              <p className="acip-panel-sub">{error}</p>
+            </div>
+          </section>
+        )}
+
         {/* ROADMAP */}
-        {data && (
+        {data && data.roadmap && (
           <section className="acip-panel acip-roadmap">
             <div className="acip-roadmap-header">
               <div>

@@ -41,6 +41,26 @@ ROLE_SKILLS = {
             "sql",
             "data visualization"
         ]
+    },
+
+    "intern": {
+
+        "core": [
+            "python",
+            "communication",
+            "problem solving"
+        ],
+
+        "tools": [
+            "git",
+            "sql",
+            "excel"
+        ],
+
+        "support": [
+            "teamwork",
+            "documentation"
+        ]
     }
 
 }

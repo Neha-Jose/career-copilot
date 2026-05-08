@@ -21,9 +21,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+ROLE_ALIASES = {
+    "ml engineer": "machine learning engineer",
+    "ml": "machine learning engineer",
+    "ds": "data scientist",
+    "internship": "intern",
+}
+
+ROLE_KEYWORDS = {
+    "machine learning engineer": ["machine learning engineer", "ml engineer", "machine learning", "ml"],
+    "data scientist": ["data scientist", "data science", "ds"],
+    "intern": ["intern", "internship", "entry level", "early career"],
+}
+
+def resolve_role(role: str):
+    normalized = role.lower().strip()
+    if normalized in ROLE_SKILLS:
+        return normalized
+
+    if normalized in ROLE_ALIASES:
+        return ROLE_ALIASES[normalized]
+
+    for canonical, keywords in ROLE_KEYWORDS.items():
+        if any(keyword in normalized for keyword in keywords):
+            return canonical
+
+    return None
+
 @app.get("/")
 def home():
-
     return {
         "message": "Career Copilot API Running"
     }
@@ -33,49 +59,24 @@ async def analyze_resume(
     resume: UploadFile,
     role: str = Form(...)
 ):
-
     try:
-
-        role = role.lower()
+        role = resolve_role(role)
 
         if role not in ROLE_SKILLS:
-
             return {
-                "error": "Role not supported"
+                "error": f"Role not supported. Supported roles: {', '.join(ROLE_SKILLS.keys())}"
             }
 
-        # Extract text
-
         text = extract_text(resume)
-
-        # Debug
-
         print("TEXT EXTRACTED")
 
         role_data = ROLE_SKILLS[role]
 
-        # Extract skills
-
         skills = extract_skills(text, role)
-
         print("SKILLS:", skills)
 
-        # ATS score
-
-        score = ats_score(
-            skills,
-            role_data
-        )
-
-        # Gap analysis
-
-        gaps = skill_gap(
-            skills,
-            role_data
-        )
-
-        # Roadmap
-
+        score = ats_score(skills, role_data)
+        gaps = skill_gap(skills, role_data)
         roadmap = generate_roadmap(gaps)
 
         return {
@@ -86,9 +87,7 @@ async def analyze_resume(
         }
 
     except Exception as e:
-
         print("BACKEND ERROR:", e)
-
         return {
             "error": str(e)
         }
