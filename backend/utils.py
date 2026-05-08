@@ -61,6 +61,66 @@ ROLE_SKILLS = {
             "teamwork",
             "documentation"
         ]
+    },
+
+    "frontend developer": {
+
+        "core": [
+            "react",
+            "javascript",
+            "css"
+        ],
+
+        "tools": [
+            "html",
+            "typescript",
+            "vue"
+        ],
+
+        "support": [
+            "testing",
+            "responsive design"
+        ]
+    },
+
+    "full stack developer": {
+
+        "core": [
+            "javascript",
+            "react",
+            "node.js"
+        ],
+
+        "tools": [
+            "postgresql",
+            "docker",
+            "mongodb"
+        ],
+
+        "support": [
+            "git",
+            "testing"
+        ]
+    },
+
+    "devops engineer": {
+
+        "core": [
+            "docker",
+            "kubernetes",
+            "aws"
+        ],
+
+        "tools": [
+            "ci/cd",
+            "terraform",
+            "jenkins"
+        ],
+
+        "support": [
+            "linux",
+            "monitoring"
+        ]
     }
 
 }
