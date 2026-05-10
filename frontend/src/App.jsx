@@ -1,16 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import API from "./services/api";
 import "./App.css";
 
 function App() {
+  const [mainTab, setMainTab] = useState("upload");
   const [resume, setResume] = useState(null);
-  const [role, setRole] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("jobseekers");
   const [completedTasks, setCompletedTasks] = useState({});
   const [fileName, setFileName] = useState("");
+  const [roles, setRoles] = useState([]);
+  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [quizResponses, setQuizResponses] = useState({});
+  const [quizLoading, setQuizLoading] = useState(false);
+
+  useEffect(() => {
+    fetchRoles();
+    fetchQuiz();
+  }, []);
+
+  const fetchRoles = async () => {
+    try {
+      const response = await API.get("/roles");
+      setRoles(response.data.roles || []);
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+    }
+  };
+
+  const fetchQuiz = async () => {
+    try {
+      const response = await API.get("/quiz");
+      setQuizQuestions(response.data.questions || []);
+    } catch (err) {
+      console.error("Error fetching quiz:", err);
+    }
+  };
 
   const toggleTask = (taskId) => {
     setCompletedTasks((prev) => ({ ...prev, [taskId]: !prev[taskId] }));
@@ -23,8 +50,8 @@ function App() {
   };
 
   const handleSubmit = async () => {
-    if (!resume || !role) {
-      alert("Upload resume and enter role");
+    if (!resume || !selectedRole) {
+      alert("Upload resume and select role");
       return;
     }
 
@@ -34,7 +61,7 @@ function App() {
 
     const formData = new FormData();
     formData.append("resume", resume);
-    formData.append("role", role);
+    formData.append("role", selectedRole);
     try {
       setLoading(true);
       const response = await API.post("/analyze", formData, {
@@ -46,13 +73,12 @@ function App() {
         setData(null);
       } else {
         setData(response.data);
+        setMainTab("dashboard");
       }
     } catch (err) {
       console.error(err);
       setError(
-        err.response?.data?.error ||
-          err.message ||
-          "Backend connection failed"
+        err.response?.data?.error || err.message || "Backend connection failed"
       );
       setData(null);
     } finally {
@@ -60,40 +86,34 @@ function App() {
     }
   };
 
-  const tabs = [
-    { id: "jobseekers", label: "Job Seekers" },
-    { id: "enterprise", label: "Enterprise" },
-    { id: "recruiters", label: "Recruiters" },
-  ];
+  const handleQuizSubmit = async () => {
+    if (Object.keys(quizResponses).length < quizQuestions.length) {
+      alert("Please answer all questions");
+      return;
+    }
 
-  const tabContent = {
-    jobseekers: {
-      eyebrow: "Career Intelligence",
-      title: "Build Your Career Strategy",
-      subtitle:
-        "Upload your resume to receive ATS scoring, skill gap analysis, personalised learning resources, and a detailed roadmap tailored to your target role.",
-      stat1: { value: "94%", label: "ATS Match Accuracy" },
-      stat2: { value: "3×", label: "Interview Rate Lift" },
-    },
-    enterprise: {
-      eyebrow: "Workforce Development",
-      title: "Upskill Your Workforce",
-      subtitle:
-        "Analyse workforce skill gaps, identify learning pathways, and build strategic development programmes across teams and departments.",
-      stat1: { value: "60%", label: "Faster Onboarding" },
-      stat2: { value: "40%", label: "Retention Improvement" },
-    },
-    recruiters: {
-      eyebrow: "Talent Acquisition",
-      title: "Find Better Candidates Faster",
-      subtitle:
-        "Evaluate candidate profiles, identify strengths and weaknesses, and streamline hiring decisions using AI-powered insights.",
-      stat1: { value: "5×", label: "Screening Speed" },
-      stat2: { value: "82%", label: "Placement Success" },
-    },
+    setQuizLoading(true);
+    try {
+      const response = await API.post("/quiz/submit", quizResponses);
+      if (response.data?.recommendations) {
+        alert("Quiz submitted! Check the recommendations.");
+        setQuizResponses({});
+      }
+    } catch (err) {
+      console.error("Quiz error:", err);
+      alert("Error submitting quiz");
+    } finally {
+      setQuizLoading(false);
+    }
   };
 
-  const content = tabContent[activeTab];
+  const mainTabs = [
+    { id: "upload", label: "Upload Resume" },
+    { id: "dream-role", label: "Dream Role" },
+    { id: "career-quiz", label: "Career Quiz" },
+    { id: "dashboard", label: "Dashboard" },
+  ];
+
   const completedCount = Object.values(completedTasks).filter(Boolean).length;
 
   return (
@@ -115,14 +135,14 @@ function App() {
         </div>
       </header>
 
-      {/* TAB STRIP */}
+      {/* MAIN TAB STRIP */}
       <div className="acip-tabstrip">
         <div className="acip-container acip-tabstrip-inner">
-          {tabs.map((tab) => (
+          {mainTabs.map((tab) => (
             <button
               key={tab.id}
-              className={`acip-tab ${activeTab === tab.id ? "acip-tab--active" : ""}`}
-              onClick={() => setActiveTab(tab.id)}
+              className={`acip-tab ${mainTab === tab.id ? "acip-tab--active" : ""}`}
+              onClick={() => setMainTab(tab.id)}
             >
               {tab.label}
             </button>
@@ -131,97 +151,222 @@ function App() {
       </div>
 
       <main className="acip-container acip-main">
-
-        {/* HERO SECTION */}
-        <section className="acip-hero">
-          <div className="acip-hero-content">
-            <p className="acip-eyebrow">{content.eyebrow}</p>
-            <h1 className="acip-hero-title">{content.title}</h1>
-            <p className="acip-hero-sub">{content.subtitle}</p>
-          </div>
-          <div className="acip-hero-stats">
-            <div className="acip-stat">
-              <span className="acip-stat-value">{content.stat1.value}</span>
-              <span className="acip-stat-label">{content.stat1.label}</span>
-            </div>
-            <div className="acip-stat-divider" />
-            <div className="acip-stat">
-              <span className="acip-stat-value">{content.stat2.value}</span>
-              <span className="acip-stat-label">{content.stat2.label}</span>
-            </div>
-          </div>
-        </section>
-
-        {/* ANALYZER PANEL */}
-        <section className="acip-panel acip-analyzer">
-          <div className="acip-panel-header">
-            <h2 className="acip-panel-title">Resume Analysis</h2>
-            <p className="acip-panel-sub">Upload a PDF or DOCX and specify your target role to begin.</p>
-          </div>
-          <div className="acip-analyzer-fields">
-            <label className="acip-file-label">
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileChange}
-                className="acip-file-input"
-              />
-              <div className="acip-file-box">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="12" y1="18" x2="12" y2="12"/>
-                  <line x1="9" y1="15" x2="15" y2="15"/>
-                </svg>
-                <span>{fileName || "Upload Resume (PDF / DOCX)"}</span>
+        {/* UPLOAD RESUME TAB */}
+        {mainTab === "upload" && (
+          <>
+            <section className="acip-hero">
+              <div className="acip-hero-content">
+                <p className="acip-eyebrow">Career Intelligence</p>
+                <h1 className="acip-hero-title">Build Your Career Strategy</h1>
+                <p className="acip-hero-sub">
+                  Upload your resume to receive ATS scoring, skill gap analysis, personalized
+                  learning resources, and a detailed roadmap tailored to your target role.
+                </p>
               </div>
-            </label>
-            <div className="acip-input-group">
-              <input
-                type="text"
-                placeholder="Target Role — e.g. Senior Product Manager"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="acip-text-input"
-              />
-            </div>
-          </div>
-          <div className="acip-analyzer-footer">
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className={`acip-btn-analyze ${loading ? "acip-btn-analyze--loading" : ""}`}
-            >
-              {loading ? (
-                <>
-                  <span className="acip-spinner" />
-                  Analysing…
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                  </svg>
-                  Analyse Resume
-                </>
-              )}
-            </button>
-            <p className="acip-analyzer-note">Your data is processed securely and never stored.</p>
-          </div>
-        </section>
+              <div className="acip-hero-stats">
+                <div className="acip-stat">
+                  <span className="acip-stat-value">94%</span>
+                  <span className="acip-stat-label">ATS Match Accuracy</span>
+                </div>
+                <div className="acip-stat-divider" />
+                <div className="acip-stat">
+                  <span className="acip-stat-value">3×</span>
+                  <span className="acip-stat-label">Interview Rate Lift</span>
+                </div>
+              </div>
+            </section>
 
-        {error && (
-          <section className="acip-panel acip-error-panel">
+            <section className="acip-panel acip-analyzer">
+              <div className="acip-panel-header">
+                <h2 className="acip-panel-title">Resume Analysis</h2>
+                <p className="acip-panel-sub">Upload a PDF or DOCX and specify your target role to begin.</p>
+              </div>
+              <div className="acip-analyzer-fields">
+                <label className="acip-file-label">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleFileChange}
+                    className="acip-file-input"
+                  />
+                  <div className="acip-file-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="12" y1="18" x2="12" y2="12"/>
+                      <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    <span>{fileName || "Upload Resume (PDF / DOCX)"}</span>
+                  </div>
+                </label>
+                <div className="acip-input-group">
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                    className="acip-text-input"
+                  >
+                    <option value="">Select Target Role</option>
+                    {roles.map((role) => (
+                      <option key={role.value} value={role.value}>
+                        {role.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="acip-analyzer-footer">
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className={`acip-btn-analyze ${loading ? "acip-btn-analyze--loading" : ""}`}
+                >
+                  {loading ? (
+                    <>
+                      <span className="acip-spinner" />
+                      Analysing…
+                    </>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                      </svg>
+                      Analyse Resume
+                    </>
+                  )}
+                </button>
+                <p className="acip-analyzer-note">Your data is processed securely and never stored.</p>
+              </div>
+            </section>
+
+            {error && (
+              <section className="acip-panel acip-error-panel">
+                <div className="acip-panel-header">
+                  <h2 className="acip-panel-title">Error</h2>
+                  <p className="acip-panel-sub">{error}</p>
+                </div>
+              </section>
+            )}
+          </>
+        )}
+
+        {/* DREAM ROLE TAB */}
+        {mainTab === "dream-role" && (
+          <section className="acip-panel">
             <div className="acip-panel-header">
-              <h2 className="acip-panel-title">Error</h2>
-              <p className="acip-panel-sub">{error}</p>
+              <h2 className="acip-panel-title">Dream Role Selection</h2>
+              <p className="acip-panel-sub">Choose your target role and we'll create a personalized learning path</p>
+            </div>
+            <div className="acip-roles-grid">
+              {roles.map((role) => (
+                <div key={role.value} className="acip-role-card">
+                  <h3 className="acip-role-name">{role.name}</h3>
+                  <p className="acip-role-desc">{role.description}</p>
+                  <div className="acip-role-skills">
+                    {role.core_skills.map((skill) => (
+                      <span key={skill} className="acip-skill-tag">{skill}</span>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedRole(role.value);
+                      setMainTab("upload");
+                    }}
+                    className="acip-btn-select"
+                  >
+                    Select Role
+                  </button>
+                </div>
+              ))}
             </div>
           </section>
         )}
 
-        {/* ROADMAP */}
-        {data && data.roadmap && (
-          <section className="acip-panel acip-roadmap">
+        {/* CAREER QUIZ TAB */}
+        {mainTab === "career-quiz" && (
+          <section className="acip-panel">
+            <div className="acip-panel-header">
+              <h2 className="acip-panel-title">Career Assessment Quiz</h2>
+              <p className="acip-panel-sub">Help us understand your learning preferences and goals</p>
+            </div>
+            <div className="acip-quiz-container">
+              {quizQuestions.map((question) => (
+                <div key={question.id} className="acip-question">
+                  <h3 className="acip-question-title">{question.id}. {question.question}</h3>
+                  <div className="acip-options">
+                    {question.options.map((option) => (
+                      <label key={option.value} className="acip-option">
+                        <input
+                          type={question.type === "checkbox" ? "checkbox" : "radio"}
+                          name={`question-${question.id}`}
+                          value={option.value}
+                          checked={
+                            question.type === "checkbox"
+                              ? (quizResponses[question.id] || []).includes(option.value)
+                              : quizResponses[question.id] === option.value
+                          }
+                          onChange={(e) => {
+                            if (question.type === "checkbox") {
+                              const current = quizResponses[question.id] || [];
+                              setQuizResponses({
+                                ...quizResponses,
+                                [question.id]: e.target.checked
+                                  ? [...current, option.value]
+                                  : current.filter((v) => v !== option.value),
+                              });
+                            } else {
+                              setQuizResponses({
+                                ...quizResponses,
+                                [question.id]: option.value,
+                              });
+                            }
+                          }}
+                        />
+                        <span className="acip-option-label">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={handleQuizSubmit}
+                disabled={quizLoading}
+                className="acip-btn-analyze"
+              >
+                {quizLoading ? "Submitting..." : "Submit Quiz"}
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* DASHBOARD TAB */}
+        {mainTab === "dashboard" && data && (
+          <>
+            <section className="acip-panel acip-dashboard">
+              <div className="acip-panel-header">
+                <h2 className="acip-panel-title">Career Dashboard</h2>
+                <p className="acip-panel-sub">Your personalized career insights and learning roadmap</p>
+              </div>
+              <div className="acip-dashboard-grid">
+                <div className="acip-score-card">
+                  <p className="acip-card-label">ATS Score</p>
+                  <p className="acip-score-value">{data.score}/100</p>
+                </div>
+                <div className="acip-score-card">
+                  <p className="acip-card-label">Skills Found</p>
+                  <p className="acip-score-value">{data.skills?.length || 0}</p>
+                </div>
+                <div className="acip-score-card">
+                  <p className="acip-card-label">Gaps Identified</p>
+                  <p className="acip-score-value">
+                    {(data.gaps?.critical?.length || 0) + 
+                     (data.gaps?.tools?.length || 0) + 
+                     (data.gaps?.support?.length || 0)}
+                  </p>
+                </div>
+              </div>
+            </section>
+            <section className="acip-panel acip-roadmap">
             <div className="acip-roadmap-header">
               <div>
                 <h2 className="acip-panel-title">Career Roadmap</h2>
@@ -314,6 +459,7 @@ function App() {
               ))}
             </div>
           </section>
+          </>
         )}
       </main>
 
