@@ -806,3 +806,351 @@ a { color: inherit; text-decoration: none; }
   margin: 0;
 }
 
+/* ── Recruitment Page (rp-*) ─────────────────────────────────────────────
+   All tokens inherited from :root — no new colours introduced.
+─────────────────────────────────────────────────────────────────────────── */
+
+/* Shared body padding inside panels */
+.rp-body { padding: 0 36px 36px; }
+
+/* ── Filters row ── */
+.rp-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 12px;
+  padding: 0 36px 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .rp-filters { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .rp-filters { grid-template-columns: 1fr; }
+}
+
+/* ── Candidate row ── */
+.rp-candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.rp-candidate-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 36px;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+}
+
+.rp-candidate-row:last-child { border-bottom: none; }
+.rp-candidate-row:hover { background: var(--surface-2); }
+
+.rp-candidate-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rp-avatar-sm { width: 36px; height: 36px; font-size: 11px; }
+
+.rp-candidate-info { flex: 1; min-width: 0; }
+
+.rp-candidate-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.rp-candidate-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+
+.rp-candidate-role { font-size: 13px; color: var(--ink-3); margin-bottom: 8px; }
+
+.rp-candidate-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rp-salary {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.rp-remote-tag {
+  display: inline-block;
+  background: var(--success-bg);
+  color: var(--success);
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .03em;
+}
+
+.rp-candidate-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  min-width: 56px;
+}
+
+.rp-match-label { font-size: 11px; color: var(--ink-4); letter-spacing: .03em; }
+
+/* ── Match score badge ── */
+.rp-match {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.rp-match--high { color: var(--success); }
+.rp-match--mid  { color: var(--accent);  }
+.rp-match--low  { color: var(--accent-2);}
+
+/* ── Status badges ── */
+.rp-badge {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.rp-badge--green { background: var(--success-bg); color: var(--success);   }
+.rp-badge--blue  { background: var(--accent-muted); color: var(--accent);  }
+.rp-badge--amber { background: rgba(232,160,32,.12); color: #8B6010;        }
+.rp-badge--teal  { background: rgba(26,102,68,.10); color: var(--success);  }
+
+/* ── ATS results rows ── */
+.rp-ats-results {
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+
+.rp-ats-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.rp-ats-row:last-child { border-bottom: none; }
+
+.rp-rank {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--ink-4);
+  min-width: 28px;
+}
+
+/* ── AI results rows ── */
+.rp-ai-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.rp-ai-row:last-child { border-bottom: none; }
+
+.rp-ai-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.rp-action-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-muted);
+  border: 1px solid rgba(26,60,94,.2);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+
+.rp-action-btn:hover { background: #dce8f4; }
+
+/* ── Textarea ── */
+.rp-textarea {
+  resize: vertical;
+  min-height: 130px;
+  line-height: 1.6;
+}
+
+/* ── File box large variant ── */
+.rp-file-box-lg {
+  padding: 28px 24px;
+  gap: 16px;
+  border-radius: var(--radius-lg);
+}
+
+/* ── Interview grid ── */
+.rp-interview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.rp-interview-card {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  background: var(--surface);
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+
+.rp-interview-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.rp-interview-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Analytics KPI grid ── */
+.rp-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.rp-kpi-card { text-align: center; }
+
+/* ── Analytics side-by-side ── */
+.rp-analytics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.rp-analytics-half { overflow: visible; }
+
+@media (max-width: 768px) {
+  .rp-analytics-row { grid-template-columns: 1fr; }
+  .rp-candidate-row { flex-wrap: wrap; }
+  .rp-interview-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Enterprise Page (ep-*) ─────────────────────────────────────────────
+   All tokens from :root — no new colour values introduced.
+─────────────────────────────────────────────────────────────────────────── */
+
+/* KPI grid — 4 columns */
+.ep-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.ep-kpi-card { text-align: center; }
+
+@media (max-width: 900px) { .ep-kpi-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .ep-kpi-grid { grid-template-columns: 1fr; } }
+
+/* Employee row in skill map */
+.ep-employee-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.ep-employee-row:last-child { border-bottom: none; }
+
+/* Learning path grid */
+.ep-lp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  padding: 0 36px 40px;
+}
+
+/* Hiring forecast row */
+.ep-forecast-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.ep-forecast-row:last-child { border-bottom: none; }
+
+/* Performance insight cards inline */
+.ep-perf-card {
+  margin-bottom: 16px;
+  text-align: center;
+}
+.ep-perf-card:last-child { margin-bottom: 0; }
+
+/* Security 2×2 grid */
+.ep-security-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.ep-security-card {
+  padding: 32px 36px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  transition: background .15s;
+}
+
+.ep-security-card:nth-child(2n) { border-right: none; }
+.ep-security-card:nth-last-child(-n+2) { border-bottom: none; }
+.ep-security-card:hover { background: var(--surface-2); }
+
+@media (max-width: 700px) {
+  .ep-security-grid { grid-template-columns: 1fr; }
+  .ep-security-card { border-right: none; border-bottom: 1px solid var(--border); }
+  .ep-security-card:last-child { border-bottom: none; }
+}
+
+/* Demo form 2-col grid */
+.ep-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 650px) { .ep-form-grid { grid-template-columns: 1fr; } }
+

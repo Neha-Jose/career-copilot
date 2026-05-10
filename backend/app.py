@@ -11,7 +11,12 @@ from utils import (
 
 from roadmap import generate_roadmap
 
-app = FastAPI()
+# New feature routers (all prefixed under /api/*)
+from routers.career      import router as career_router
+from routers.recruitment import router as recruitment_router
+from routers.enterprise  import router as enterprise_router
+
+app = FastAPI(title="Career Copilot API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -227,3 +232,10 @@ async def submit_quiz(responses: dict):
         return {
             "error": str(e)
         }
+
+# ── Register new feature routers ─────────────────────────────────────────────
+# All new endpoints live under /api/* — existing /, /roles, /analyze,
+# /quiz, /quiz/submit routes are completely unchanged.
+app.include_router(career_router)
+app.include_router(recruitment_router)
+app.include_router(enterprise_router)
