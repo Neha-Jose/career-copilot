@@ -19,6 +19,7 @@ function CareerPage() {
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizResponses, setQuizResponses] = useState({});
   const [quizLoading, setQuizLoading] = useState(false);
+  const [quizResult, setQuizResult] = useState(null);
 
   useEffect(() => {
     fetchRoles();
@@ -61,6 +62,7 @@ function CareerPage() {
 
     setError(null);
     setData(null);
+    setQuizResult(null);
     setCompletedTasks({});
 
     const formData = new FormData();
@@ -100,7 +102,7 @@ function CareerPage() {
     try {
       const response = await API.post("/quiz/submit", quizResponses);
       if (response.data?.recommendations) {
-        alert("Quiz submitted! Check the recommendations.");
+        setQuizResult(response.data.recommendations);
         setQuizResponses({});
       }
     } catch (err) {
@@ -340,6 +342,29 @@ function CareerPage() {
               >
                 {quizLoading ? "Submitting..." : "Submit Quiz"}
               </button>
+              {quizResult && (
+                <div className="acip-quiz-result">
+                  <h3 className="acip-card-title">Quiz Recommendations</h3>
+                  {Array.isArray(quizResult) ? (
+                    <ul className="acip-quiz-result-list">
+                      {quizResult.map((item, index) => (
+                        <li key={index} className="acip-quiz-recommendation">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <ul className="acip-quiz-result-list">
+                      {Object.entries(quizResult).map(([key, value]) => (
+                        <li key={key} className="acip-quiz-recommendation">
+                          <strong>{key.replace(/_/g, " ")}: </strong>
+                          {typeof value === "object" ? JSON.stringify(value) : value}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -352,66 +377,104 @@ function CareerPage() {
               <p className="acip-panel-sub">Personalized insights and learning roadmap</p>
             </div>
 
-            <div className="acip-dashboard">
-              <div className="acip-dashboard-grid">
-                <div className="acip-score-card">
-                  <span className="acip-score-value">{data.score}</span>
-                  <span className="acip-score-label">ATS Score</span>
-                </div>
-                <div className="acip-score-card">
-                  <span className="acip-score-value">{data.skills?.length || 0}</span>
-                  <span className="acip-score-label">Skills Detected</span>
-                </div>
-                <div className="acip-score-card">
-                  <span className="acip-score-value">
-                    {(data.gaps?.critical?.length || 0) +
-                      (data.gaps?.tools?.length || 0) +
-                      (data.gaps?.support?.length || 0)}
-                  </span>
-                  <span className="acip-score-label">Skill Gaps</span>
-                </div>
+            <div className="acip-results-grid">
+              <div className="acip-result-card">
+                <h3 className="acip-card-title">AI Career Summary</h3>
+                <p className="acip-card-copy">Target role: <strong>{data.role}</strong></p>
+                <p className="acip-card-copy">Detected skills: <strong>{data.skills?.length || 0}</strong></p>
+                <p className="acip-card-copy">ATS score: <strong>{data.score}</strong></p>
+                <p className="acip-card-copy">Missing skills: <strong>{(data.gaps?.critical?.length || 0) + (data.gaps?.tools?.length || 0) + (data.gaps?.support?.length || 0)}</strong></p>
               </div>
 
-              {data.roadmap && (
-                <div className="acip-roadmap">
-                  {Object.entries(data.roadmap).map(([phaseKey, phase]) => (
-                    <div key={phaseKey} className="acip-roadmap-phase">
-                      <h3>{phase.title}</h3>
-                      {phase.skills.map((skill) => (
-                        <div key={skill.name} className="acip-roadmap-skill">
-                          <input
-                            type="checkbox"
-                            id={skill.name}
-                            checked={!!completedTasks[skill.name]}
-                            onChange={() => toggleTask(skill.name)}
-                          />
-                          <label htmlFor={skill.name} className="acip-roadmap-label">
-                            <span className="acip-skill-name">{skill.name}</span>
-                            <span className="acip-skill-time">{skill.time}</span>
-                            <span className="acip-skill-difficulty">{skill.difficulty}</span>
-                          </label>
-                          {skill.resources && (
-                            <div className="acip-skill-resources">
-                              {skill.resources.map((resource, idx) => (
-                                <a
-                                  key={idx}
-                                  href={resource[1]}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="acip-resource-link"
-                                >
-                                  {resource[0]}
-                                </a>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="acip-result-card">
+                <h3 className="acip-card-title">Recommended roles</h3>
+                {data.recommended_roles?.map((role) => (
+                  <div key={role.role} className="acip-job-card">
+                    <div className="acip-job-title">{role.role}</div>
+                    <div className="acip-job-meta">Match {role.match_score}%</div>
+                    <div className="acip-skill-pill">Core: {role.core_skills.join(", ")}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="acip-result-card">
+                <h3 className="acip-card-title">Learning recommendations</h3>
+                {data.learning_recommendations?.map((item) => (
+                  <div key={item.skill} className="acip-job-card">
+                    <div className="acip-job-title">{item.skill}</div>
+                    <div className="acip-job-meta">{item.time} • {item.difficulty}</div>
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="acip-resource-link">
+                      {item.resource}
+                    </a>
+                  </div>
+                ))}
+              </div>
+
+              <div className="acip-result-card">
+                <h3 className="acip-card-title">Quiz prompt</h3>
+                <p className="acip-card-copy">{data.quiz_prompt}</p>
+                <button className="acip-btn-analyze" onClick={() => setMainTab("career-quiz")}>Take Quiz</button>
+              </div>
             </div>
+
+            <div className="acip-dashboard-grid">
+              <div className="acip-score-card">
+                <span className="acip-score-value">{data.score}</span>
+                <span className="acip-score-label">ATS Score</span>
+              </div>
+              <div className="acip-score-card">
+                <span className="acip-score-value">{data.skills?.length || 0}</span>
+                <span className="acip-score-label">Skills Detected</span>
+              </div>
+              <div className="acip-score-card">
+                <span className="acip-score-value">
+                  {(data.gaps?.critical?.length || 0) +
+                    (data.gaps?.tools?.length || 0) +
+                    (data.gaps?.support?.length || 0)}
+                </span>
+                <span className="acip-score-label">Skill Gaps</span>
+              </div>
+            </div>
+
+            {data.roadmap && (
+              <div className="acip-roadmap">
+                {data.roadmap.map((phase, phaseIndex) => (
+                  <div key={phaseIndex} className="acip-roadmap-phase">
+                    <h3>{phase.title}</h3>
+                    {phase.items.map((skill) => (
+                      <div key={skill.skill} className="acip-roadmap-skill">
+                        <input
+                          type="checkbox"
+                          id={skill.skill}
+                          checked={!!completedTasks[skill.skill]}
+                          onChange={() => toggleTask(skill.skill)}
+                        />
+                        <label htmlFor={skill.skill} className="acip-roadmap-label">
+                          <span className="acip-skill-name">{skill.skill}</span>
+                          <span className="acip-skill-time">{skill.time}</span>
+                          <span className="acip-skill-difficulty">{skill.difficulty}</span>
+                        </label>
+                        {skill.resources && (
+                          <div className="acip-skill-resources">
+                            {skill.resources.map((resource, idx) => (
+                              <a
+                                key={idx}
+                                href={resource[1]}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="acip-resource-link"
+                              >
+                                {resource[0]}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         )}
 

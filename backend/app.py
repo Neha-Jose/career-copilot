@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 
+from database import engine, Base
 from utils import (
     extract_text,
     extract_skills,
@@ -9,14 +10,18 @@ from utils import (
     ROLE_SKILLS
 )
 
-from roadmap import generate_roadmap
+from roadmap import generate_roadmap, generate_weekly_roadmap, RESOURCE_DB
 
 # New feature routers (all prefixed under /api/*)
-from routers.career      import router as career_router
+from routers.career      import router as career_router, MOCK_JOBS
 from routers.recruitment import router as recruitment_router
 from routers.enterprise  import router as enterprise_router
+from routers.auth        import router as auth_router
+from routers.resume      import router as resume_router
 
 app = FastAPI(title="Career Copilot API", version="2.0.0")
+
+Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -106,6 +111,50 @@ def get_roles():
     ]
     return {"roles": role_details}
 
+def _rank_roles_by_skill_overlap(skills, current_role):
+    matches = []
+    normalized_skills = {skill.lower() for skill in skills}
+    for role_name, role_data in ROLE_SKILLS.items():
+        overlap = len(normalized_skills & {s.lower() for s in role_data["core"] + role_data["tools"] + role_data["support"]})
+        score = int((overlap / max(len(role_data["core"] + role_data["tools"] + role_data["support"]), 1)) * 100)
+        if role_name != current_role:
+            matches.append({
+                "role": role_name,
+                "match_score": score,
+                "core_skills": role_data["core"][:3],
+                "recommended_next": role_data["tools"][:2] + role_data["support"][:1]
+            })
+    return sorted(matches, key=lambda item: item["match_score"], reverse=True)[:3]
+
+
+def _build_learning_recommendations(gaps):
+    resources = []
+    for skill in gaps["critical"][:2] + gaps["tools"][:2] + gaps["support"][:2]:
+        entry = RESOURCE_DB.get(skill.lower(), None)
+        resources.append({
+            "skill": skill,
+            "project": entry["project"] if entry else f"Practice {skill} in a project",
+            "resource": entry["resources"][0][0] if entry else "Search tutorials online",
+            "url": entry["resources"][0][1] if entry else "https://www.google.com/search?q=" + skill,
+            "time": entry["time"] if entry else "2 Weeks",
+            "difficulty": entry["difficulty"] if entry else "Intermediate"
+        })
+    return resources
+
+
+def _recommend_jobs(skills, role):
+    normalized_skills = {skill.lower() for skill in skills}
+    jobs = []
+    for job in MOCK_JOBS:
+        score = job["match"]
+        if role.lower() in job["role"].lower():
+            score = min(100, score + 10)
+        if any(skill in job["role"].lower() for skill in normalized_skills):
+            score = min(100, score + 5)
+        jobs.append({**job, "recommendation_score": score})
+    return sorted(jobs, key=lambda item: item["recommendation_score"], reverse=True)[:4]
+
+
 @app.post("/analyze")
 async def analyze_resume(
     resume: UploadFile,
@@ -130,12 +179,23 @@ async def analyze_resume(
         score = ats_score(skills, role_data)
         gaps = skill_gap(skills, role_data)
         roadmap = generate_roadmap(gaps)
+        weekly_roadmap = generate_weekly_roadmap(gaps)
 
         return {
+            "role": role,
             "score": score,
             "skills": skills,
             "gaps": gaps,
-            "roadmap": roadmap
+            "roadmap": roadmap,
+            "weekly_roadmap": weekly_roadmap,
+            "recommended_roles": _rank_roles_by_skill_overlap(skills, role),
+            "learning_recommendations": _build_learning_recommendations(gaps),
+            "job_recommendations": _recommend_jobs(skills, role),
+            "quiz_prompt": "Complete the career assessment to further personalize your learning plan.",
+            "summary": {
+                "missing_skills_count": len(gaps["critical"] + gaps["tools"] + gaps["support"]),
+                "most_urgent_gap": gaps["critical"][0] if gaps["critical"] else None
+            }
         }
 
     except Exception as e:
@@ -239,3 +299,5 @@ async def submit_quiz(responses: dict):
 app.include_router(career_router)
 app.include_router(recruitment_router)
 app.include_router(enterprise_router)
+app.include_router(auth_router)
+app.include_router(resume_router)

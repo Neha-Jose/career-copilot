@@ -394,6 +394,112 @@ a { color: inherit; text-decoration: none; }
   color: var(--ink-4);
 }
 
+.acip-results-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-bottom: 28px;
+}
+
+.acip-result-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.acip-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.acip-card-copy {
+  font-size: 14px;
+  color: var(--ink-2);
+  margin-bottom: 10px;
+}
+
+.acip-job-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.acip-job-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.acip-job-meta {
+  color: var(--ink-4);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.acip-skill-pill {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.acip-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.acip-score-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.acip-score-value {
+  font-family: 'DM Serif Display', serif;
+  font-size: 34px;
+  color: var(--accent);
+}
+
+.acip-score-label {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.acip-quiz-result {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.acip-quiz-result-list {
+  margin-top: 12px;
+  padding-left: 18px;
+}
+
+.acip-quiz-recommendation {
+  margin-bottom: 10px;
+  color: var(--ink-2);
+}
+
 /* ── Roadmap ── */
 .acip-roadmap { padding: 32px 36px 40px; }
 
